@@ -12,6 +12,7 @@ import { VaultUri } from "./Vault/VaultUri"
 import { Owner } from "./Vault/Owner"
 import { Status } from "./Vault/Revision/Status"
 import { Author } from "./Vault/Revision/Author"
+import { VaultName } from "./Vault/VaultName"
 
 describe("VaultManager", (): void => {
 	const key = new Key(new KeyId("K-1"), new KeyValue("foobar"), new ClockTimestamp(123))
@@ -26,10 +27,11 @@ describe("VaultManager", (): void => {
 		const repository = new InMemoryVaultRepository([])
 		const manager = new VaultManager(keyGenerator, repository, clock)
 
-		const vault = await manager.create(person, uri)
+		const vault = await manager.create(person, uri, new VaultName("my-vault"))
 
 		assert.deepStrictEqual(vault.owner, person)
 		assert.deepStrictEqual(vault.current()?.key, key)
+		assert.deepStrictEqual(vault.current()?.name.value, "my-vault")
 		assert.deepStrictEqual(vault.current()?.author, new Author(person.value))
 		assert.deepStrictEqual(vault.current()?.uri, uri)
 		assert.deepStrictEqual(vault.current()?.status, Status.ACTIVE)
@@ -42,11 +44,12 @@ describe("VaultManager", (): void => {
 		const repository = new InMemoryVaultRepository([])
 		const manager = new VaultManager(keyGenerator, repository, clock)
 
-		const vault = await manager.create(person, uri)
-		const updatedVault = await manager.update(vault.id, anotherUri, anotherPerson)
+		const vault = await manager.create(person, uri, new VaultName("my-vault"))
+		const updatedVault = await manager.update(vault.id, anotherUri, anotherPerson, new VaultName("a-new-name"))
 
 		assert.deepStrictEqual(updatedVault.owner, person)
 		assert.deepStrictEqual(updatedVault.current()?.key, key)
+		assert.deepStrictEqual(updatedVault.current()?.name.value, "a-new-name")
 		assert.deepStrictEqual(updatedVault.current()?.author, anotherPerson)
 		assert.deepStrictEqual(updatedVault.current()?.uri, anotherUri)
 		assert.deepStrictEqual(updatedVault.current()?.status, Status.ACTIVE)
@@ -58,7 +61,7 @@ describe("VaultManager", (): void => {
 		const clock = new InMemoryClock(new ClockTimestamp(123))
 		const repository = new InMemoryVaultRepository([])
 		const manager = new VaultManager(keyGenerator, repository, clock)
-		const vault = await manager.create(person, uri)
+		const vault = await manager.create(person, uri, new VaultName("my-vault"))
 
 		let vaults = await manager.findByOwner(person)
 		assert.deepStrictEqual(vaults, [vault.id])
