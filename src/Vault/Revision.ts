@@ -3,9 +3,11 @@ import type { Key } from "./Key"
 import type { Author } from "./Revision/Author"
 import type { ClockTimestamp } from "../ClockTimestamp"
 import type { VaultUri } from "./VaultUri"
+import type { VaultName } from "./VaultName"
 
 export class Revision {
 	constructor(
+		public readonly name: VaultName,
 		public readonly key: Key,
 		public readonly author: Author,
 		public readonly timestamp: ClockTimestamp,
@@ -14,10 +16,10 @@ export class Revision {
 	) {}
 
 	public active(): Revision {
-		return new Revision(this.key, this.author, this.timestamp, this.uri, Status.ACTIVE)
+		return new Revision(this.name, this.key, this.author, this.timestamp, this.uri, Status.ACTIVE)
 	}
 
 	public inactive(): Revision {
-		return new Revision(this.key, this.author, this.timestamp, this.uri, Status.INACTIVE)
+		return new Revision(this.name, this.key, this.author, this.timestamp, this.uri, Status.INACTIVE)
 	}
 }

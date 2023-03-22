@@ -11,6 +11,7 @@ import { Owner } from "../Vault/Owner"
 import { VaultUri } from "../Vault/VaultUri"
 import { Vault } from "../Vault"
 import { VaultId } from "../Vault/VaultId"
+import { VaultName } from "../Vault/VaultName"
 
 describe("InMemoryVaultRepository", (): void => {
 	const timestamp = new ClockTimestamp(123)
@@ -19,7 +20,14 @@ describe("InMemoryVaultRepository", (): void => {
 
 	it("must store a new vault", async () => {
 		const repository = new InMemoryVaultRepository([])
-		const revision = new Revision(vaultKey, owner, timestamp, new VaultUri("https://foo/bar/vault"), Status.ACTIVE)
+		const revision = new Revision(
+			new VaultName("my-vault"),
+			vaultKey,
+			owner,
+			timestamp,
+			new VaultUri("https://foo/bar/vault"),
+			Status.ACTIVE,
+		)
 
 		const createdVault = await repository.create(owner, revision)
 
@@ -28,13 +36,20 @@ describe("InMemoryVaultRepository", (): void => {
 
 	it("must update a vault", async () => {
 		const uri = new VaultUri("https://foo/bar/vault")
-		const revision = new Revision(vaultKey, owner, timestamp, uri, Status.ACTIVE)
+		const revision = new Revision(new VaultName("my-vault"), vaultKey, owner, timestamp, uri, Status.ACTIVE)
 		const repository = new InMemoryVaultRepository([])
 
 		await repository.create(owner, revision)
 
 		const vault = new Vault(new VaultId("V-1"), owner, [revision])
-		const anotherRevision = new Revision(vaultKey, owner, timestamp, uri, Status.ACTIVE)
+		const anotherRevision = new Revision(
+			new VaultName("a-new-name"),
+			vaultKey,
+			owner,
+			timestamp,
+			uri,
+			Status.ACTIVE,
+		)
 		const updatedVault = vault.update(anotherRevision)
 
 		await repository.update(updatedVault)
@@ -43,14 +58,31 @@ describe("InMemoryVaultRepository", (): void => {
 	})
 
 	it("must get by ID", async () => {
-		const uri = new VaultUri("https://foo/bar/vault")
-		const revision = new Revision(vaultKey, owner, timestamp, uri, Status.ACTIVE)
 		const repository = new InMemoryVaultRepository([])
 
-		const vault = await repository.create(owner, revision)
-		const actual = await repository.getById(new VaultId("V-1"))
+		const revision = new Revision(
+			new VaultName("my-vault"),
+			vaultKey,
+			owner,
+			timestamp,
+			new VaultUri("https://foo/bar/vault"),
+			Status.ACTIVE,
+		)
 
-		assert.deepStrictEqual(actual, vault)
+		const vault = await repository.create(owner, revision)
+		assert.deepStrictEqual(await repository.getById(vault.id), vault)
+
+		const anotherRevision = new Revision(
+			new VaultName("my-vault"),
+			vaultKey,
+			owner,
+			timestamp,
+			new VaultUri("https://foo/bar/another-vault"),
+			Status.ACTIVE,
+		)
+
+		const anotherVault = await repository.create(new Owner("someone-else"), anotherRevision)
+		assert.deepStrictEqual(await repository.getById(anotherVault.id), anotherVault)
 	})
 
 	it("must find by owner", async () => {
@@ -58,13 +90,27 @@ describe("InMemoryVaultRepository", (): void => {
 
 		const ownerVault = await repository.create(
 			owner,
-			new Revision(vaultKey, owner, timestamp, new VaultUri("https://foo/bar/vault"), Status.ACTIVE),
+			new Revision(
+				new VaultName("my-vault"),
+				vaultKey,
+				owner,
+				timestamp,
+				new VaultUri("https://foo/bar/vault"),
+				Status.ACTIVE,
+			),
 		)
 
 		const anotherOwner = new Owner("someone-else")
 		const anotherOwnerVault = await repository.create(
 			anotherOwner,
-			new Revision(vaultKey, owner, timestamp, new VaultUri("https://foo/bar/another-vault"), Status.ACTIVE),
+			new Revision(
+				new VaultName("my-vault"),
+				vaultKey,
+				owner,
+				timestamp,
+				new VaultUri("https://foo/bar/another-vault"),
+				Status.ACTIVE,
+			),
 		)
 
 		const ownerVaults = await repository.findByOwner(owner)
