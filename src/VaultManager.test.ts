@@ -1,10 +1,7 @@
 import assert from "assert"
 import "mocha"
-import { Key } from "./Vault/Key"
-import { KeyId } from "./Vault/Key/KeyId"
-import { KeyValue } from "./Vault/Key/KeyValue"
 import { ClockTimestamp } from "./ClockTimestamp"
-import { InMemoryKeyGenerator } from "./Vault/KeyGenerator/InMemoryGenerator"
+import { InMemoryKeyGenerator } from "./Vault/KeyGenerator/InMemoryKeyGenerator"
 import { InMemoryClock } from "./Clock/InMemoryClock"
 import { InMemoryVaultRepository } from "./Repository/InMemoryVaultRepository"
 import { VaultManager } from "./VaultManager"
@@ -13,15 +10,18 @@ import { Owner } from "./Vault/Owner"
 import { Status } from "./Vault/Revision/Status"
 import { Author } from "./Vault/Revision/Author"
 import { VaultName } from "./Vault/VaultName"
+import { CryptoKeyGenerator } from "./Vault/KeyGenerator/CryptoKeyGenerator"
 
 describe("VaultManager", (): void => {
-	const key = new Key(new KeyId("K-1"), new KeyValue("foobar"), new ClockTimestamp(123))
+	const timestamp = new ClockTimestamp(123)
+	const cryptoKeyGenerator = new CryptoKeyGenerator()
 	const person = new Owner("someone")
 	const anotherPerson = new Author("someone-else")
 	const uri = new VaultUri("https://foo/bar/vault")
 	const anotherUri = new VaultUri("https://foo/bar/vault-updated")
 
 	it("must create a vault", async () => {
+		const key = await cryptoKeyGenerator.generate(timestamp)
 		const keyGenerator = new InMemoryKeyGenerator([key])
 		const clock = new InMemoryClock(new ClockTimestamp(123))
 		const repository = new InMemoryVaultRepository([])
@@ -39,6 +39,7 @@ describe("VaultManager", (): void => {
 	})
 
 	it("must update a vault", async () => {
+		const key = await cryptoKeyGenerator.generate(timestamp)
 		const keyGenerator = new InMemoryKeyGenerator([key])
 		const clock = new InMemoryClock(new ClockTimestamp(123))
 		const repository = new InMemoryVaultRepository([])
@@ -57,6 +58,7 @@ describe("VaultManager", (): void => {
 	})
 
 	it("must find by owner", async () => {
+		const key = await cryptoKeyGenerator.generate(timestamp)
 		const keyGenerator = new InMemoryKeyGenerator([key])
 		const clock = new InMemoryClock(new ClockTimestamp(123))
 		const repository = new InMemoryVaultRepository([])
