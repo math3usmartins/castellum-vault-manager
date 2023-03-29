@@ -1,8 +1,5 @@
 import assert from "assert"
 import "mocha"
-import { Key } from "../Vault/Key"
-import { KeyId } from "../Vault/Key/KeyId"
-import { KeyValue } from "../Vault/Key/KeyValue"
 import { ClockTimestamp } from "../ClockTimestamp"
 import { InMemoryVaultRepository } from "./InMemoryVaultRepository"
 import { Revision } from "../Vault/Revision"
@@ -12,13 +9,15 @@ import { VaultUri } from "../Vault/VaultUri"
 import { Vault } from "../Vault"
 import { VaultId } from "../Vault/VaultId"
 import { VaultName } from "../Vault/VaultName"
+import { CryptoKeyGenerator } from "../Vault/KeyGenerator/CryptoKeyGenerator"
 
 describe("InMemoryVaultRepository", (): void => {
 	const timestamp = new ClockTimestamp(123)
 	const owner = new Owner("someone")
-	const vaultKey = new Key(new KeyId("K-1"), new KeyValue("first"), timestamp)
+	const cryptoKeyGenerator = new CryptoKeyGenerator()
 
-	it("must store a new vault", async () => {
+	it("must store a new vault", async (): Promise<void> => {
+		const vaultKey = await cryptoKeyGenerator.generate(timestamp)
 		const repository = new InMemoryVaultRepository([])
 		const revision = new Revision(
 			new VaultName("my-vault"),
@@ -34,7 +33,8 @@ describe("InMemoryVaultRepository", (): void => {
 		assert.deepStrictEqual(repository, new InMemoryVaultRepository([createdVault]))
 	})
 
-	it("must update a vault", async () => {
+	it("must update a vault", async (): Promise<void> => {
+		const vaultKey = await cryptoKeyGenerator.generate(timestamp)
 		const uri = new VaultUri("https://foo/bar/vault")
 		const revision = new Revision(new VaultName("my-vault"), vaultKey, owner, timestamp, uri, Status.ACTIVE)
 		const repository = new InMemoryVaultRepository([])
@@ -57,7 +57,8 @@ describe("InMemoryVaultRepository", (): void => {
 		assert.deepStrictEqual(repository, new InMemoryVaultRepository([updatedVault]))
 	})
 
-	it("must get by ID", async () => {
+	it("must get by ID", async (): Promise<void> => {
+		const vaultKey = await cryptoKeyGenerator.generate(timestamp)
 		const repository = new InMemoryVaultRepository([])
 
 		const revision = new Revision(
@@ -85,7 +86,8 @@ describe("InMemoryVaultRepository", (): void => {
 		assert.deepStrictEqual(await repository.getById(anotherVault.id), anotherVault)
 	})
 
-	it("must find by owner", async () => {
+	it("must find by owner", async (): Promise<void> => {
+		const vaultKey = await cryptoKeyGenerator.generate(timestamp)
 		const repository = new InMemoryVaultRepository([])
 
 		const ownerVault = await repository.create(

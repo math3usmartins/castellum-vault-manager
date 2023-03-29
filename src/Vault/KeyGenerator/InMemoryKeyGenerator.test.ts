@@ -1,16 +1,17 @@
 import assert from "assert"
 import "mocha"
-import { Key } from "../Key"
-import { InMemoryKeyGenerator } from "./InMemoryGenerator"
+import { InMemoryKeyGenerator } from "./InMemoryKeyGenerator"
 import { ClockTimestamp } from "../../ClockTimestamp"
-import { KeyId } from "../Key/KeyId"
-import { KeyValue } from "../Key/KeyValue"
+import { CryptoKeyGenerator } from "./CryptoKeyGenerator"
 
 describe("InMemoryKeyGenerator", (): void => {
-	const firstKey = new Key(new KeyId("K-1"), new KeyValue("first"), new ClockTimestamp(123))
-	const secondKey = new Key(new KeyId("K-2"), new KeyValue("second"), new ClockTimestamp(456))
+	const timestamp = new ClockTimestamp(123)
+	const cryptoKeyGenerator = new CryptoKeyGenerator()
 
-	it("must generate and update remaining keys", async () => {
+	it("must generate and update remaining keys", async (): Promise<void> => {
+		const firstKey = await cryptoKeyGenerator.generate(timestamp)
+		const secondKey = await cryptoKeyGenerator.generate(timestamp)
+
 		const generator = new InMemoryKeyGenerator([firstKey, secondKey])
 
 		// p.s. given clock timestamp doesn't matter in this case

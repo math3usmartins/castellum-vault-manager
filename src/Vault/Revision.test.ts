@@ -1,20 +1,21 @@
 import assert from "assert"
 import "mocha"
 import { Revision } from "./Revision"
-import { Key } from "./Key"
 import { Author } from "./Revision/Author"
 import { ClockTimestamp } from "../ClockTimestamp"
 import { VaultUri } from "./VaultUri"
 import { Status } from "./Revision/Status"
-import { KeyId } from "./Key/KeyId"
-import { KeyValue } from "./Key/KeyValue"
 import { VaultName } from "./VaultName"
+import { CryptoKeyGenerator } from "./KeyGenerator/CryptoKeyGenerator"
 
 describe("Revision", (): void => {
-	const key = new Key(new KeyId("K-1"), new KeyValue("foobar"), new ClockTimestamp(123))
+	const timestamp = new ClockTimestamp(123)
+	const cryptoKeyGenerator = new CryptoKeyGenerator()
 	const author = new Author("someone")
 
-	it("must become active", (): void => {
+	it("must become active", async (): Promise<void> => {
+		const key = await cryptoKeyGenerator.generate(timestamp)
+
 		const revision = new Revision(
 			new VaultName("my-vault"),
 			key,
@@ -27,7 +28,9 @@ describe("Revision", (): void => {
 		assert.equal(revision.active().status, Status.ACTIVE)
 	})
 
-	it("must become inactive", (): void => {
+	it("must become inactive", async (): Promise<void> => {
+		const key = await cryptoKeyGenerator.generate(timestamp)
+
 		const revision = new Revision(
 			new VaultName("my-vault"),
 			key,
