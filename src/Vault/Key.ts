@@ -1,6 +1,4 @@
-import { webcrypto } from "node:crypto"
-import { KeyAlgorithm } from "./Key/KeyAlgorithm"
-
+import type { KeyAlgorithm } from "./Key/KeyAlgorithm"
 import type { ClockTimestamp } from "../ClockTimestamp"
 import type { KeyId } from "./Key/KeyId"
 import type { CryptoKey } from "./Key/CryptoKey"
@@ -12,8 +10,4 @@ export class Key {
 		readonly timestamp: ClockTimestamp,
 		readonly algorithm: KeyAlgorithm,
 	) {}
-
-	public static create(id: KeyId, cryptoKey: CryptoKey, timestamp: ClockTimestamp): Key {
-		return new Key(id, cryptoKey, timestamp, new KeyAlgorithm(webcrypto.getRandomValues(new Uint8Array(12))))
-	}
 }
