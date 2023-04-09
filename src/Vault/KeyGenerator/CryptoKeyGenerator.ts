@@ -16,4 +16,11 @@ export class CryptoKeyGenerator implements KeyGenerator {
 
 		return await Promise.resolve(Key.create(new KeyId(webcrypto.randomUUID()), new CryptoKey(exported), timestamp))
 	}
+
+	public static async toNativeCryptoKey(vaultKey: Key): Promise<webcrypto.CryptoKey> {
+		return await webcrypto.subtle.importKey("jwk", vaultKey.cryptoKey.value, vaultKey.algorithm, true, [
+			"encrypt",
+			"decrypt",
+		])
+	}
 }
