@@ -4,19 +4,33 @@ import { Key } from "../Key"
 import type { ClockTimestamp } from "../../ClockTimestamp"
 import { KeyId } from "../Key/KeyId"
 import { CryptoKey } from "../Key/CryptoKey"
+import { KeyAlgorithm } from "../Key/KeyAlgorithm"
 
 export class CryptoKeyGenerator implements KeyGenerator {
 	static readonly FORMAT = "jwk"
 
+	static readonly ALGORITHM = {
+		name: "AES-GCM",
+		length: 256,
+	}
+
 	public async generate(timestamp: ClockTimestamp): Promise<Key> {
-		const cryptoKey = await webcrypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, [
-			"encrypt",
-			"decrypt",
-		])
+		const cryptoKey = await webcrypto.subtle.generateKey(CryptoKeyGenerator.ALGORITHM, true, ["encrypt", "decrypt"])
 
 		const exported: webcrypto.JsonWebKey = await webcrypto.subtle.exportKey(CryptoKeyGenerator.FORMAT, cryptoKey)
 
-		return await Promise.resolve(Key.create(new KeyId(webcrypto.randomUUID()), new CryptoKey(exported), timestamp))
+		return await Promise.resolve(
+			new Key(
+				new KeyId(webcrypto.randomUUID()),
+				new CryptoKey(exported),
+				timestamp,
+				new KeyAlgorithm(
+					CryptoKeyGenerator.ALGORITHM.name,
+					CryptoKeyGenerator.ALGORITHM.length,
+					webcrypto.getRandomValues(new Uint8Array(12)),
+				),
+			),
+		)
 	}
 
 	public static async toNativeCryptoKey(vaultKey: Key): Promise<webcrypto.CryptoKey> {

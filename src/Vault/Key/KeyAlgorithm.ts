@@ -1,6 +1,3 @@
 export class KeyAlgorithm {
-	public readonly name = "AES-GCM"
-	public readonly length = 256
-
-	constructor(public readonly iv: Uint8Array) {}
+	constructor(public readonly name: string, public readonly length: number, public readonly iv: Uint8Array) {}
 }
